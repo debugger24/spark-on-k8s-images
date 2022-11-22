@@ -3,7 +3,7 @@ FROM python:3.10.8-slim-buster
 RUN apt-get update
 
 # Java
-RUN apt-get install -y openjdk-11-jdk gcc musl-dev zip unzip tini
+RUN apt-get install -y openjdk-11-jdk gcc musl-dev zip unzip tini wget
 ENV JAVA_HOME /usr/
 
 # Hadoop
