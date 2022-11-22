@@ -1,0 +1,34 @@
+FROM python:3.10.8-slim-buster
+
+RUN apt-get update
+
+# Java
+RUN apt-get install -y openjdk-11-jdk gcc musl-dev zip unzip tini
+ENV JAVA_HOME /usr/
+
+# Hadoop
+ARG HADOOP_VERSION="3.2.4"
+ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
+ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+ENV PATH $PATH:$HADOOP_HOME/bin
+RUN wget "https://archive.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz" \
+    && tar -xzf "hadoop-$HADOOP_VERSION.tar.gz" -C /usr/ \
+    && rm "hadoop-$HADOOP_VERSION.tar.gz"
+
+# Spark
+ARG SPARK_VERSION="3.1.3"
+ENV SPARK_PACKAGE spark-$SPARK_VERSION
+ENV SPARK_HOME /usr/$SPARK_PACKAGE-bin-without-hadoop
+ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
+ENV PATH $PATH:$SPARK_HOME/bin
+RUN wget "https://downloads.apache.org/spark/$SPARK_PACKAGE/$SPARK_PACKAGE-bin-without-hadoop.tgz" \
+    && tar -xzf "$SPARK_PACKAGE-bin-without-hadoop.tgz" -C /usr/ \
+    && rm "$SPARK_PACKAGE-bin-without-hadoop.tgz"
+
+COPY decom.sh /opt/decom.sh
+COPY entrypoint.sh /opt/entrypoint.sh
+
+RUN chmod +x /opt/decom.sh
+RUN chmod +x /opt/entrypoint.sh
+
+ENTRYPOINT [ "/opt/entrypoint.sh" ]
